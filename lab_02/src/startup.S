@@ -5,6 +5,11 @@
 
 .include "psr.inc"
 
+@ Данные
+.section .data
+data:
+   .word 0x000000ff
+
 .section .init_code
 .arm
 
@@ -26,6 +31,17 @@ vect4: .word vec_data_abort
 vect5: .word vec_reserved
 vect6: .word vec_irq_interrupt
 vect7: .word vec_fast_irq_interrupt
+
+/* Таблица векторов исключений */
+vectors:
+    LDR PC, =reset_handler           /* Вектор сброса */
+    LDR PC, =undefined_handler       /* Вектор неопределённой инструкции */
+    LDR PC, =swi_handler             /* Вектор SWI */
+    LDR PC, =prefetch_abort_handler  /* Вектор прерывания выборки */
+    LDR PC, =data_abort_handler      /* Вектор прерывания данных */
+    LDR PC, =reserved_handler        /* Зарезервировано */
+    LDR PC, =irq_handler             /* Вектор IRQ */
+    LDR PC, =fiq_handler             /* Вектор FIQ */
 
 .text
 .arm
@@ -98,10 +114,10 @@ init_reset:
    @ 2.5. Организация стека, помещение и извлечение слов из/в регистры - аналоги действий PUSH и POP. Регистр указателя стека и направление роста выберите самостоятельно.
 
    stmfd sp!, {r0-r3} @ Сохраняем регистры R0-R3 в стек
-   mov   r0, #11      @ Изменяем значения в R0
-   mov   r1, #21      @ Изменяем значения в R1
-   mov   r2, #31      @ Изменяем значения в R2
-   mov   r2, #41      @ Изменяем значения в R3
+   mov   r0,  #11     @ Изменяем значения в R0
+   mov   r1,  #21     @ Изменяем значения в R1
+   mov   r2,  #31     @ Изменяем значения в R2
+   mov   r2,  #41     @ Изменяем значения в R3
    ldmfd sp!, {r0-r3} @ Восстанавливаем регистры R0-R3 из стека
 
    @ 2.6. Переключение режима работы процессора, изменяя младшие 5 бит регистра CPSR. Начальный режим - режим SVC по сбросу. Покажите работу переключения банков регистров на примере значений регистра SP (R13).
@@ -122,10 +138,69 @@ func:
    mov r1, #15         @ Записываем число 15 в R1
    add r2, r0, r1      @ Складываем и помещаем результат в R2
 
-   @ Переменные
-   .section .data
-data:
-   .word 0x000000ff   @ Инициализация переменной
+/* Обработчик сброса */
+reset_handler:
+    /* Настройка стека */
+    MSR CPSR_c, #0xD3      /* Установить режим SVC с маскировкой прерываний */
+    LDR SP, =_ram_end      /* Инициализация указателя стека (SP) */
+
+    /* Копирование данных из FLASH в RAM */
+    LDR R0, =_data         /* Адрес назначения в RAM */
+    LDR R1, =_data_load    /* Адрес источника в FLASH */
+    LDR R2, =_edata        /* Конечный адрес данных в RAM */
+
+copy_data:
+   CMP R0, R2
+   LDRCC R3, [R1], #4
+   STRCC R3, [R0], #4
+   BCC copy_data
+
+   /* Инициализация секции .bss нулями */
+   LDR R0, =_bss
+   LDR R2, =_ebss
+   MOV R3, #0
+
+clear_bss:
+   CMP R0, R2
+   STRCC R3, [R0], #4
+   ADDCC R0, R0, #4
+   BCC clear_bss
+
+   /* Переход к основной программе */
+   LDR R0, =start
+   BX R0
+
+undefined_handler:
+   B undefined_handler
+
+swi_handler:
+   STMFD SP!, {R0-R3, LR}
+   MOV R0, #2
+   LDMFD SP!, {R0-R3, LR}
+   SUBS PC, LR, #4
+
+prefetch_abort_handler:
+   B prefetch_abort_handler
+
+data_abort_handler:
+   B data_abort_handler
+
+reserved_handler:
+   B reserved_handler
+
+irq_handler:
+   B irq_handler
+
+fiq_handler:
+   B fiq_handler
+
+.extern _data
+.extern _data_load
+.extern _edata
+.extern _bss
+.extern _ebss
+.extern _ram_end
+.extern start
 
 nothing_to_do:
    wfi
