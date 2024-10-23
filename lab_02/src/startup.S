@@ -1,5 +1,5 @@
-.global vector_base
-.global vect0
+.global reset_handler
+
 .extern start
 .extern ram_end
 
@@ -9,27 +9,21 @@
 .arm
 
 vector_base:
-      ldr pc, vect0
-      ldr pc, vect1
-      ldr pc, vect2  @ set breakpoint here too
-      ldr pc, vect3
-      ldr pc, vect4
-      ldr pc, vect5
-      ldr pc, vect6
-      ldr pc, vect7
-
-vect0: .word vec_reset
-vect1: .word vec_undefined_instruction
-vect2: .word vec_swi
-vect3: .word vec_prefetch_abort
-vect4: .word vec_data_abort
-vect5: .word vec_reserved
-vect6: .word vec_irq_interrupt
-vect7: .word vec_fast_irq_interrupt
+   ldr pc, =vec_reset
+   ldr pc, =vec_undefined_instruction
+   ldr pc, =vec_swi
+   ldr pc, =vec_prefetch_abort
+   ldr pc, =vec_data_abort
+   ldr pc, =vec_reserved
+   ldr pc, =vec_irq_interrupt
+   ldr pc, =vec_fast_irq_interrupt
 
 .text
 .arm
 
+@ ========================================
+@ Описания обработчиков
+@ ========================================
 vec_reset:
    b init_reset
 
@@ -116,19 +110,25 @@ init_reset:
    swi #0 @ Генерация системного вызова
 
    b nothing_to_do
+@ ========================================
 
+@ ========================================
+@ Дополнительные функции
+@ ========================================
 func:
    mov r0, #17         @ Записываем число 17 в R0
    mov r1, #15         @ Записываем число 15 в R1
    add r2, r0, r1      @ Складываем и помещаем результат в R2
 
-   @ Переменные
-   .section .data
+@ Переменные
+.section .data
+
 data:
    .word 0x000000ff   @ Инициализация переменной
 
 nothing_to_do:
    wfi
    b nothing_to_do
+@ ========================================
 
 .end
