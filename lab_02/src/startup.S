@@ -9,14 +9,14 @@
 .arm
 
 vector_base:
-     ldr pc, vect0
-     ldr pc, vect1
-     ldr pc, vect2  @ set breakpoint here too
-     ldr pc, vect3
-     ldr pc, vect4
-     ldr pc, vect5
-     ldr pc, vect6
-     ldr pc, vect7
+      ldr pc, vect0
+      ldr pc, vect1
+      ldr pc, vect2  @ set breakpoint here too
+      ldr pc, vect3
+      ldr pc, vect4
+      ldr pc, vect5
+      ldr pc, vect6
+      ldr pc, vect7
 
 vect0: .word vec_reset
 vect1: .word vec_undefined_instruction
