@@ -11,6 +11,42 @@ struct uart_info {
 static struct uart_info uart0_data;
 static struct uart_info *uart0 = &uart0_data;
 
+static int simple_atoi(const char *str) {
+    int result = 0;
+    while (*str) {
+        result = result * 10 + (*str - '0'); // Преобразуем каждый символ в число
+        str++;
+    }
+    return result;
+}
+
+static void int_to_str(int num, char *str, int base) {
+    char *ptr = str, *ptr1 = str, tmp_char;
+    int tmp_value;
+
+    // Обрабатываем отрицательные числа
+    if (num < 0) {
+        *ptr++ = '-';
+        num = -num;
+    }
+
+    // Преобразуем число в строку
+    do {
+        tmp_value = num;
+        num /= base; // В этом месте вызывается деление
+        *ptr++ = "0123456789"[tmp_value - num * base];
+    } while (num);
+
+    *ptr-- = '\0';
+
+    // Реверс строки
+    while (ptr1 < ptr) {
+        tmp_char = *ptr;
+        *ptr-- = *ptr1;
+        *ptr1++ = tmp_char;
+    }
+}
+
 // Функция для передачи символа через UART
 static void UART_Tx(struct uart_info *uart, char c) {
     void *iobase = uart->iobase;
@@ -68,8 +104,11 @@ static int ReadNumber() {
             UART_Tx(uart0, c); // Эхо-ввод
         }
     }
-    return atoi(buffer); // Преобразование строки в число
+    return simple_atoi(buffer); // Преобразование строки в число
 }
+
+// Преобразование числа в строку
+static void int_to_str(int num, char *str, int base);
 
 // Главная функция программы
 void start(void) {
@@ -85,7 +124,9 @@ void start(void) {
         int sum = num1 + num2; // Сложение чисел
 
         char result[32];
-        snprintf(result, sizeof(result), "\r\nSum: %d\r\n", sum);
-        PrintSZ(result); // Вывод результата
+        int_to_str(sum, result, 10);
+        PrintSZ("\r\nSum: ");
+        PrintSZ(result);
+        PrintSZ("\r\n");
     }
 }
