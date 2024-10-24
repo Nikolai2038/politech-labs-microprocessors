@@ -78,12 +78,16 @@ static void PrintSZ(char *p) {
 
 // Основная функция старта
 void start(void) {
-	// Инициализация UART
-	UART_Init(uart0, (void *)UARTBASE);
+    int num1, num2, sum;
 
-	// Вывод сообщения
-	PrintSZ("\r\n!!! Sample code is running !!!\r\n");
+    UART_Init(uart0, (void *)UARTBASE);
 
-	// Возврат из функции
-	return;
+    PrintSZ("Enter first number: ");
+    // ...
+
+    PrintSZ("Enter second number: ");
+    // ...
+
+    PrintSZ("Sum: ");
+    // ...
 }
