@@ -150,31 +150,56 @@ static void itoa(int num, char *str) {
 
 // Основная функция старта
 void start(void) {
-    int num1, num2, sum;
+    int num1, num2, result;
     char buffer[16];
+    char op;
 
-    UART_Init(uart0, (void *)UARTBASE);
+    while (1) {
+        UART_Init(uart0, (void *)UARTBASE);
 
-    // Запрос первого числа
-    PrintSZ("Enter first number: ");
-    num1 = ReadNumber();
+        // Запрос первого числа
+        PrintSZ("========================================\n");
+        PrintSZ("Enter first number: ");
+        num1 = ReadNumber();
 
-    UART_Init(uart0, (void *)UARTBASE);
+        // Запрос второго числа
+        PrintSZ("Enter second number: ");
+        num2 = ReadNumber();
 
-    // Запрос второго числа
-    PrintSZ("Enter second number: ");
-    num2 = ReadNumber();
+        // Запрос операции
+        PrintSZ("Enter operation ('+' or '-') or 'e' to exit: ");
+        op = UART_Rx(uart0);
 
-    UART_Init(uart0, (void *)UARTBASE);
+        if (op == 'e') {
+            PrintSZ("========================================\n");
+            PrintSZ("Exiting...\n");
+            break;
+        }
 
-    // Вычисление суммы
-    sum = num1 + num2;
+        switch (op) {
+            case '+':
+                result = num1 + num2;
+                break;
+            case '-':
+                result = num1 - num2;
+                break;
+            case 'e':
+                if (num2 == 0) {
+                    PrintSZ("infinity\n");
+                    continue;
+                }
+                result = num1 - num2;
+                break;
+            default:
+                PrintSZ("Invalid operation\n");
+                continue;
+        }
 
-    // Печать результата
-    PrintSZ("Sum: ");
-
-    // Преобразование суммы в строку и печать через UART
-    itoa(sum, buffer);
-    PrintSZ(buffer);
-    PrintSZ("\n");
+        // Печать результата
+        PrintSZ("Result: ");
+        itoa(result, buffer);
+        PrintSZ(buffer);
+        PrintSZ("\n");
+    }
 }
+

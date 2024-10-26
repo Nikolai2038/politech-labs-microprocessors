@@ -43,6 +43,6 @@ static void PrintSZ(char *p) {
 
 void start(void) {
 	UART_Init(uart0, (void *)UARTBASE);
-	PrintSZ("\r\n!!! Sample code is running !!!\r\n");
+	PrintSZ("Hello, World!\n");
 	return;
 }
